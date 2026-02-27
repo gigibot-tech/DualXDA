@@ -5,16 +5,25 @@ from torch.utils.data import DataLoader
 import torch
 import os
 import json
-from zennit.composites import EpsilonPlus, EpsilonAlpha2Beta1
-from zennit.attribution import Gradient
-from zennit.image import imgify
+# Lazy import zennit to avoid triggering torchvision import chain early
+# from zennit.composites import EpsilonPlus, EpsilonAlpha2Beta1
+# from zennit.attribution import Gradient
+# from zennit.image import imgify
 import itertools
 
 
 
 
-def zennit_inner_product_explanation(model, train, test, composite_cls=EpsilonAlpha2Beta1, canonizer=None,
+def zennit_inner_product_explanation(model, train, test, composite_cls=None, canonizer=None,
                                      mode="train",cmap_name="bwr"):
+    # Lazy import zennit only when this function is called
+    from zennit.composites import EpsilonPlus, EpsilonAlpha2Beta1
+    from zennit.attribution import Gradient
+    from zennit.image import imgify
+    
+    # Use default if not provided
+    if composite_cls is None:
+        composite_cls = EpsilonAlpha2Beta1
     with torch.no_grad():
         train_features = model.features(train)
         test_features = model.features(test)
