@@ -17,3 +17,8 @@ src/solvers/libs/
 
 # ignore training checkpoints overview
 training_checkpoints/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
