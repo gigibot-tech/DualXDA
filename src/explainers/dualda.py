@@ -132,11 +132,18 @@ class DualDA(FeatureKernelExplainer):
         else:
             # Train new SVM model using SVC with linear kernel (Kaggle-compatible)
             # This provides access to dual coefficients via support vectors
-            print("Training SVC with linear kernel (this may take a few minutes)...")
-            model = SVC(kernel='linear', C=self.C, max_iter=self.max_iter, verbose=False)
-            model.fit(self.normalized_samples.cpu().numpy(), self.labels.cpu().numpy())
+            print("Training SVC with linear kernel...")
+            
+            # Use verbose=1 to show sklearn's internal progress
+            model = SVC(kernel='linear', C=self.C, max_iter=self.max_iter, verbose=1)
+            
+            # Wrap in tqdm context for visual feedback
+            with tqdm(total=100, desc="SVC Training", bar_format='{l_bar}{bar}| {elapsed}') as pbar:
+                model.fit(self.normalized_samples.cpu().numpy(), self.labels.cpu().numpy())
+                pbar.update(100)  # Complete the bar when done
+            
             accuracy = model.score(self.normalized_samples.cpu().numpy(), self.labels.cpu().numpy())
-            print(f"SVC Accuracy: {accuracy:.2f}")
+            print(f"✅ SVC Accuracy: {accuracy:.2f}")
 
             # Extract learned weight matrix [num_classes, num_features]
             self.learned_weight = torch.tensor(model.coef_, dtype=torch.float, device=self.device)
