@@ -1,6 +1,12 @@
 import os.path
 from abc import ABC, abstractmethod
 
+# Import NumPy compatibility patch BEFORE scipy
+try:
+    import numpy_compat  # Patches NumPy 2.x for scipy compatibility
+except ImportError:
+    pass  # If not available, continue (may fail on NumPy 2.x)
+
 from torch.cuda import is_available
 from utils.data import FeatureDataset
 import torch
