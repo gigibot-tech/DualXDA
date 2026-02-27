@@ -1,3 +1,18 @@
+"""
+Model Training Module for DualXDA
+
+This module provides functionality for training neural network models on various datasets
+with support for different training configurations, data augmentation, and evaluation metrics.
+
+Key Features:
+- Flexible training with multiple optimizers (SGD, Adam, RMSprop)
+- Learning rate scheduling (constant, annealing, step decay)
+- Data augmentation support
+- Checkpoint saving and resuming
+- TensorBoard logging
+- Support for corrupted labels, grouped classes, and marked samples
+"""
+
 import argparse
 import math
 import logging
@@ -24,6 +39,29 @@ from utils.data import load_datasets_reduced, RestrictedDataset
 import warnings
 
 
+    """
+    Test all model checkpoints in a directory and save results.
+    
+    This function evaluates multiple trained models on both training and test sets,
+    collecting accuracy metrics for each checkpoint.
+    
+    Args:
+        model_root_path (str): Directory containing model checkpoint files
+        model_name (str): Name of the model architecture
+        device (str): Device to run evaluation on ('cuda' or 'cpu')
+        num_classes (int): Number of classes in the dataset
+        class_groups (list): Class groupings for hierarchical classification
+        data_root (str): Root directory of the dataset
+        batch_size (int): Batch size for evaluation
+        num_batches_to_process (int): Number of batches to process
+        dataset_name (str): Name of the dataset (e.g., 'MNIST', 'CIFAR')
+        dataset_type (str): Type of dataset modification ('std', 'corrupt', 'group', 'mark')
+        validation_size (int): Size of validation set
+        save_dir (str): Directory to save evaluation results
+        
+    Returns:
+        dict: Dictionary mapping checkpoint names to train/test accuracies
+    """
 def test_models_in_dir(model_root_path, model_name, device, num_classes, class_groups, data_root, batch_size,
                    num_batches_to_process, dataset_name, dataset_type, validation_size, save_dir):
     #model_root_path=os.path.join(model_root_path, dataset_name)
@@ -103,6 +141,18 @@ def parse_report(rep, num_classes):
         for i, key in enumerate(keys):
             spl = line.strip().split('    ')
             ret[key][spl[0].strip().replace(' ', '_')] = float(spl[i + 1].strip())
+def load_scheduler(name, optimizer, epochs):
+    """
+    Load and configure a learning rate scheduler.
+    
+    Args:
+        name (str): Scheduler type ('constant', 'annealing', 'step')
+        optimizer: PyTorch optimizer instance
+        epochs (int): Total number of training epochs
+        
+    Returns:
+        torch.optim.lr_scheduler: Configured learning rate scheduler
+    """
     return ret
 
 def get_validation_loss(model, ds, loss, num_classes, device):
@@ -179,6 +229,42 @@ def load_augmentation(name, dataset_name):
             trans_arr.append(trans_dict[trans])
     return Compose(trans_arr)
 
+"""
+Main training loop for neural network models.
+
+This function handles the complete training process including:
+- Model initialization and parameter counting
+- Optimizer and scheduler setup
+- Data loading with optional augmentation
+- Training loop with validation checkpoints
+- TensorBoard logging
+- Model checkpoint saving
+
+Args:
+    model_name (str): Name of the model architecture to use
+    device (str): Device for training ('cuda' or 'cpu')
+    num_classes (int): Number of output classes
+    class_groups (list): Optional class groupings for hierarchical classification
+    data_root (str): Root directory containing the dataset
+    epochs (int): Number of training epochs
+    batch_size (int): Batch size for training
+    lr (float): Learning rate
+    weight_decay (float): L2 regularization weight
+    momentum (float): Momentum for SGD optimizer
+    save_dir (str): Directory to save checkpoints
+    save_each (int): Save checkpoint every N epochs
+    model_path (str): Path to load pretrained model (optional)
+    base_epoch (int): Starting epoch number (for resuming training)
+    dataset_name (str): Name of dataset ('MNIST', 'CIFAR', 'AWA')
+    dataset_type (str): Dataset modification type ('std', 'corrupt', 'group', 'mark')
+    num_batches_eval (int): Number of batches for validation evaluation
+    validation_size (int): Size of validation set
+    augmentation (str): Data augmentation strategy
+    optimizer (str): Optimizer type ('sgd', 'adam', 'rmsprop')
+    scheduler (str): Learning rate scheduler ('constant', 'annealing', 'step')
+    loss (str): Loss function ('cross_entropy', 'bce', 'hinge')
+    train_indices (list): Optional indices to restrict training set
+"""
 def start_training(model_name, device, num_classes, class_groups, data_root, epochs,
                    batch_size, lr, weight_decay, momentum, save_dir, save_each, model_path, base_epoch,
                    dataset_name, dataset_type, num_batches_eval, validation_size,

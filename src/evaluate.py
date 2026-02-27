@@ -1,3 +1,19 @@
+"""
+Model Evaluation Module for DualXDA
+
+This module provides functionality for evaluating data attribution methods using
+various metrics and benchmarks. It supports multiple evaluation criteria including:
+- Class detection
+- Subclass detection  
+- Shortcut detection
+- Mislabeling detection
+- Linear data modeling score (LDS)
+- Coreset selection
+- Data pruning
+
+The evaluation framework uses the Quanda library for standardized benchmarking.
+"""
+
 import argparse
 from utils.data import load_datasets, ReduceLabelDataset, PredictionTargetDataset
 from utils.models import clear_resnet_from_checkpoints, load_model
@@ -62,6 +78,40 @@ def load_metric(metric_name, dataset_name, train, test, device, model, model_nam
     base_dict.update(metric_kwargs)
     return metric_cls(**base_dict)
 
+"""
+Evaluate data attribution explanations using specified metrics.
+
+This function loads a trained model, generates or loads explanations, and evaluates
+them using various metrics like class detection, mislabeling detection, LDS, etc.
+
+Args:
+    model_name (str): Name of the model architecture
+    model_path (str): Path to trained model checkpoint
+    device (str): Device for computation ('cuda' or 'cpu')
+    class_groups (list): Class groupings for hierarchical classification
+    dataset_name (str): Name of dataset ('MNIST', 'CIFAR', 'AWA')
+    metric_name (str): Evaluation metric to use
+    data_root (str): Root directory of dataset
+    xpl_root (str): Directory containing explanation files
+    save_dir (str): Directory to save evaluation results
+    validation_size (int): Size of validation set
+    num_classes (int): Number of classes
+    epochs (int): Training epochs (for retraining metrics)
+    loss (str): Loss function name
+    lr (float): Learning rate (for retraining metrics)
+    momentum (float): Momentum (for retraining metrics)
+    optimizer (str): Optimizer type (for retraining metrics)
+    scheduler (str): LR scheduler type (for retraining metrics)
+    weight_decay (float): Weight decay (for retraining metrics)
+    augmentation (str): Data augmentation strategy (for retraining metrics)
+    sample_nr (int): Sample number for LDS caching
+    xai_method (str): XAI method name ('dualda', 'trak', etc.)
+    cache_dir (str): Cache directory for explainer
+    lds_cache_dir (str): Cache directory for LDS scores
+    grad_dir (str): Directory for gradient caching
+    features_dir (str): Directory for feature caching
+    batch_size (int): Batch size for evaluation
+"""
 
 def evaluate(model_name, model_path, device, class_groups,
              dataset_name, metric_name,

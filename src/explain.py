@@ -1,3 +1,24 @@
+"""
+Explanation Generation Module for DualXDA
+
+This module provides functionality for generating data attribution explanations
+using various XAI methods. It supports multiple explainer types including:
+- DualDA: Dual Data Attribution using SVM dual variables
+- TRAK: Tracing with Randomly-projected After Kernel
+- TracIn: Tracing Influence
+- Representer Points: Representer point selection
+- LiSSA: Linear time Stochastic Second-order Algorithm
+- Arnoldi: Arnoldi iteration-based influence functions
+- Kronfluence: Kronecker-factored influence functions
+- Similarity-based methods: Feature and input similarity
+
+The module handles:
+- Explainer initialization and caching
+- Batch processing of explanations
+- Self-influence computation for mislabeling detection
+- Configuration management for different datasets and methods
+"""
+
 import argparse
 import torch
 from utils import xplain
@@ -106,6 +127,38 @@ def print_model(model):
         cum=cum+count
         print(name, "Percentage: ", float(count)/float(total), "Cumulative: ", float(cum)/float(total))
     print("TOTAL:",total)
+"""
+Generate data attribution explanations for a trained model.
+
+This function:
+1. Loads a trained model and datasets
+2. Initializes the specified explainer with appropriate parameters
+3. Generates explanations for test samples based on training data
+4. Saves explanations to disk in batches
+
+Args:
+    model_name (str): Name of the model architecture
+    model_path (str): Path to trained model checkpoint
+    device (str): Device for computation ('cuda' or 'cpu')
+    class_groups (list): Class groupings for hierarchical classification
+    dataset_name (str): Name of dataset ('MNIST', 'CIFAR', 'AWA')
+    dataset_type (str): Dataset modification type ('std', 'corrupt', 'group', 'mark')
+    data_root (str): Root directory of dataset
+    batch_size (int): Batch size for explanation generation
+    save_dir (str): Directory to save explanation files
+    cache_dir (str): Cache directory for explainer
+    grad_dir (str): Directory for gradient caching
+    features_dir (str): Directory for feature caching
+    validation_size (int): Size of validation set
+    num_batches_per_file (int): Number of batches to save per file
+    start_file (int): Starting file index for batch processing
+    num_files (int): Number of files to generate
+    xai_method (str): XAI method name ('dualda', 'trak', 'tracin', etc.)
+    num_classes (int): Number of classes
+    C_margin (float): Regularization parameter for DualDA or sparsity for Representer
+    testsplit (str): Test split to use ('test' or 'val')
+    sparse (bool): Whether to use sparse representation
+"""
 
 def explain_model(model_name, model_path, device, class_groups,
                   dataset_name, dataset_type, data_root, batch_size,
